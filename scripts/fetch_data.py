@@ -12,6 +12,7 @@ import io
 import json
 import re
 import sys
+import time
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -41,10 +42,20 @@ MIN_WEEKS = 1000  # o histórico tem ~1090 semanas desde 2005
 MAX_STALE_DAYS = 28  # a última semana não pode ser mais antiga do que isto
 
 
-def http_get(url, timeout=120):
-    req = urllib.request.Request(url, headers={"User-Agent": "combustiveis-site/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read()
+def http_get(url, timeout=60, attempts=4):
+    """GET com novas tentativas: os servidores às vezes ficam parados ou lentos."""
+    # Atenção: NÃO acrescentar o cabeçalho "Accept": a FRED deixa o pedido pendurado até dar timeout.
+    req = urllib.request.Request(url, headers={"User-Agent": "combustiveis-em-portugal/1.0"})
+    for n in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read()
+        except Exception as e:
+            if n == attempts:
+                raise RuntimeError(f"Falha a descarregar {url} ({attempts} tentativas): {e}") from e
+            wait = 5 * 3 ** (n - 1)  # 5 s, 15 s, 45 s
+            print(f"Tentativa {n} falhou ({e}); nova tentativa em {wait} s", file=sys.stderr)
+            time.sleep(wait)
 
 
 # --- Oil Bulletin -----------------------------------------------------------
