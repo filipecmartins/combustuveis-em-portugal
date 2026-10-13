@@ -6,7 +6,6 @@ Site estático que compara o preço do Brent com o da gasolina 95 e do gasóleo 
 - `scripts/fetch_data.py` descarrega o Weekly Oil Bulletin (Comissão Europeia) e o Brent (FRED) e gera `site/dados/semanal.json`.
 - `site/` é o site (HTML, CSS e JS), que lê esse ficheiro. Não há servidor nem base de dados.
 - `.github/workflows/atualizar-e-publicar.yml` corre o script todos os dias, faz commit do JSON se houver dados novos e publica `site/` no GitHub Pages.
-- `design/` guarda o protótipo original e não é publicado.
 
 ## Correr localmente
 ```
