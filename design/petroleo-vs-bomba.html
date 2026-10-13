@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petróleo vs Bomba</title>
+<meta name="description" content="Evolução semanal do preço do petróleo Brent comparada com o preço da gasolina 95 e do gasóleo em Portugal, com e sem impostos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --ink:#17202C; --muted:#566171; --line:#D9DEE5; --line-soft:#ECEFF3;
+  --brent:#0072B2; --gasolina:#C77E00; --gasoleo:#A9407C; --isp:#7C8798; --iva:#B8C0CC;
+  --focus:#0072B2; --warn-bg:#FFF6E0; --warn-ink:#5C4300;
+  --serif:"Newsreader", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12171E; --surface:#1A2029; --ink:#E6EAF0; --muted:#9BA6B5; --line:#2E3743; --line-soft:#232A34;
+    --brent:#56B4E9; --gasolina:#F0B23A; --gasoleo:#E08CC0; --isp:#717D8F; --iva:#465060;
+    --focus:#56B4E9; --warn-bg:#2B2516; --warn-ink:#E9D49A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12171E; --surface:#1A2029; --ink:#E6EAF0; --muted:#9BA6B5; --line:#2E3743; --line-soft:#232A34;
+  --brent:#56B4E9; --gasolina:#F0B23A; --gasoleo:#E08CC0; --isp:#717D8F; --iva:#465060;
+  --focus:#56B4E9; --warn-bg:#2B2516; --warn-ink:#E9D49A; color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--sans);font-variant-numeric:tabular-nums}
+img,svg,canvas{max-width:100%}
+a{color:var(--brent);text-underline-offset:2px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+@media (min-width:768px){.wrap{padding:0 32px}}
+
+/* Pré-visualização */
+.preview{border-bottom:1px dashed var(--line);font-size:13px;color:var(--muted);background:var(--surface)}
+.preview .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding-top:8px;padding-bottom:8px}
+.preview strong{color:var(--ink);font-weight:600}
+.pv-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pv-group button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 10px;cursor:pointer;min-height:32px}
+.pv-group button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* Cabeçalho */
+.masthead{padding:28px 0 8px}
+.mast-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 24px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.wordmark{font:600 24px/1.1 var(--serif);letter-spacing:-.01em;margin:0}
+.wordmark small{display:block;font:400 14px/1.4 var(--sans);color:var(--muted);letter-spacing:0;margin-top:4px}
+.updated{font-size:13px;color:var(--muted);text-align:left}
+@media (min-width:768px){.updated{text-align:right}}
+.updated b{color:var(--ink);font-weight:500}
+.lede{font:400 clamp(26px,5.4vw,44px)/1.15 var(--serif);letter-spacing:-.015em;margin:22px 0 6px;max-width:22em;text-wrap:balance}
+.lede-sub{font:400 18px/1.45 var(--serif);color:var(--muted);margin:0 0 4px;max-width:36em}
+
+/* Cartões */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0 8px}
+@media (min-width:900px){.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
+.card{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--ink);border-radius:4px;padding:14px 14px 12px;display:flex;flex-direction:column;min-height:150px}
+.card[data-s="brent"]{border-top-color:var(--brent)}
+.card[data-s="gasolina"]{border-top-color:var(--gasolina)}
+.card[data-s="gasoleo"]{border-top-color:var(--gasoleo)}
+.card[data-s="var"]{border-top-color:var(--line);grid-column:1 / -1;min-height:0}
+@media (min-width:900px){.card[data-s="var"]{grid-column:auto;min-height:150px}}
+.card h3{font:500 14px/1.3 var(--sans);margin:0 0 8px;color:var(--muted)}
+.card .val{font:500 clamp(28px,7vw,36px)/1 var(--sans);letter-spacing:-.02em}
+.card .unit{font-size:13px;color:var(--muted);margin-top:4px}
+.card .spark{margin-top:auto;padding-top:10px;height:38px;width:100%;display:block}
+.card .sub{font-size:12px;color:var(--muted);margin-top:6px}
+.var-list{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.var-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.var-list .name{display:flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.chg{font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.chg svg{width:11px;height:11px}
+.card .note{font-size:12px;color:var(--muted);margin-top:auto;padding-top:10px;line-height:1.4}
+
+/* Secções */
+section.block{margin:44px 0 0}
+.block-head{max-width:46em;margin-bottom:14px}
+.block h2{font:500 clamp(24px,4vw,30px)/1.2 var(--serif);letter-spacing:-.01em;margin:0 0 6px}
+.block .dek{margin:0;color:var(--muted);font-size:15px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 12px 12px}
+@media (min-width:768px){.panel{padding:20px 22px 16px}}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg)}
+.seg button{border:0;background:transparent;padding:0 14px;min-height:40px;min-width:48px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+@media (pointer:coarse){.seg button{min-height:44px}}
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.legend button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;border-radius:999px;padding:0 12px;min-height:36px;cursor:pointer;font-size:14px}
+.legend button .sw{width:18px;height:3px;border-radius:2px}
+.legend button[aria-pressed="false"]{color:var(--muted);text-decoration:line-through;opacity:.7}
+.legend button[aria-pressed="false"] .sw{opacity:.35}
+.axis-cap{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted);margin:2px 2px 6px}
+.axis-cap span{display:flex;align-items:center;gap:6px}
+.chart-box{position:relative;height:320px}
+@media (min-width:768px){.chart-box{height:420px}}
+.chart-box.short{height:280px}
+@media (min-width:768px){.chart-box.short{height:340px}}
+.range-label{font-size:13px;color:var(--muted);margin:12px 2px 4px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.range-label b{color:var(--ink);font-weight:500}
+
+/* Seletor de intervalo */
+.range{position:relative;height:48px;margin:0 2px}
+.range .ov{position:absolute;left:0;right:0;top:4px;height:30px;width:100%;color:var(--brent);opacity:.45}
+.range .win{position:absolute;top:2px;height:34px;background:color-mix(in srgb,var(--brent) 10%,transparent);border-left:2px solid var(--ink);border-right:2px solid var(--ink)}
+.range input{position:absolute;left:-11px;right:-11px;width:calc(100% + 22px);top:22px;margin:0;height:26px;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.range input::-webkit-slider-runnable-track{background:none;height:26px}
+.range input::-moz-range-track{background:none;height:26px}
+.range input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;border-radius:50%;background:var(--surface);border:2px solid var(--ink);cursor:grab;margin-top:2px}
+.range input::-moz-range-thumb{pointer-events:auto;width:18px;height:18px;border-radius:50%;background:var(--surface);border:2px solid var(--ink);cursor:grab}
+.range input:focus-visible::-webkit-slider-thumb{outline:2px solid var(--focus);outline-offset:2px}
+.single-range{width:100%;margin:6px 0 2px;accent-color:var(--ink);height:32px}
+
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px;margin:2px 2px 12px;font-size:15px}
+.stats span{display:inline-flex;align-items:center;gap:7px}
+.stats b{font-weight:600}
+
+/* Composição */
+.mix{margin:4px 2px 16px}
+.mix-title{font-size:15px;margin:0 0 8px}
+.mix-title b{font-weight:600}
+.mix-bar{display:flex;height:28px;border-radius:3px;overflow:hidden;background:var(--line-soft)}
+.mix-bar span{display:block;height:100%}
+.mix-key{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;color:var(--muted);margin-top:8px}
+.mix-key span{display:inline-flex;align-items:center;gap:6px}
+.mix-key b{color:var(--ink);font-weight:500}
+.sq{width:11px;height:11px;border-radius:2px;flex:none}
+
+/* Texto */
+.reading{display:grid;gap:28px;grid-template-columns:1fr}
+@media (min-width:900px){.reading{grid-template-columns:1fr 1fr;gap:48px}}
+.reading h2{font:500 24px/1.2 var(--serif);margin:0 0 10px}
+.reading p,.reading li{font:400 17px/1.6 var(--serif);max-width:36em;margin:0 0 10px}
+.reading ul{padding-left:1.1em;margin:0}
+.reading .small{font:400 14px/1.55 var(--sans);color:var(--muted)}
+
+footer{margin:56px 0 0;border-top:1px solid var(--line);padding:18px 0 28px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+
+/* Estados */
+.status{display:none}
+[data-state="loading"] .chart-box canvas{visibility:hidden}
+[data-state="loading"] .chart-box::after{content:"A carregar dados…";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:14px;background:repeating-linear-gradient(0deg,transparent 0 63px,var(--line-soft) 63px 64px)}
+[data-state="loading"] .card .val,[data-state="loading"] .card .unit,[data-state="loading"] .card .sub,[data-state="loading"] .lede,[data-state="loading"] .lede-sub,[data-state="loading"] .var-list,[data-state="loading"] .mix,[data-state="loading"] .stats{color:transparent!important;background:var(--line-soft);border-radius:4px;animation:pulse 1.4s ease-in-out infinite}
+[data-state="loading"] .var-list *,[data-state="loading"] .mix *,[data-state="loading"] .stats *{visibility:hidden}
+@keyframes pulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+[data-state="error"] .needs-data{display:none}
+[data-state="error"] .status.error{display:block}
+.status.error{margin:28px 0 0;padding:22px;border:1px solid var(--line);border-left:4px solid var(--ink);background:var(--surface);border-radius:4px;max-width:46em}
+.status.error h2{font:500 22px/1.25 var(--serif);margin:0 0 6px}
+.status.error p{margin:0 0 14px;color:var(--muted)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--surface);border-radius:6px;padding:0 18px;min-height:44px;font-weight:500;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body data-state="loading">
+
+<div class="preview" aria-label="Controlos de pré-visualização do protótipo">
+  <div class="wrap">
+    <span><strong>Protótipo</strong> com dados de exemplo</span>
+    <div class="pv-group" role="group" aria-label="Tema">
+      <span>Tema</span>
+      <button data-theme-set="auto" aria-pressed="true">Automático</button>
+      <button data-theme-set="light" aria-pressed="false">Claro</button>
+      <button data-theme-set="dark" aria-pressed="false">Escuro</button>
+    </div>
+    <div class="pv-group" role="group" aria-label="Estado da página">
+      <span>Estado</span>
+      <button data-pv="ready" aria-pressed="true">Com dados</button>
+      <button data-pv="loading" aria-pressed="false">A carregar</button>
+      <button data-pv="error" aria-pressed="false">Erro</button>
+    </div>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="mast-top">
+      <h1 class="wordmark">Petróleo vs Bomba<small>O preço do barril de petróleo e o que paga por litro em Portugal, semana a semana desde 2005.</small></h1>
+      <p class="updated" id="updated">Atualizado a <b>…</b></p>
+    </div>
+    <p class="lede" id="lede">Esta semana, um barril de Brent custa em média 111,20 € e um litro de gasóleo 2,16 €.</p>
+    <p class="lede-sub" id="lede-sub">Há um ano, eram …</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="status error" id="erro" role="alert">
+    <h2>Não foi possível carregar os dados de preços</h2>
+    <p>O ficheiro com o histórico semanal não respondeu. Verifique a ligação à internet e tente novamente. Se o problema continuar, os dados voltam a ficar disponíveis na próxima atualização diária.</p>
+    <button class="btn" id="retry">Tentar novamente</button>
+  </div>
+
+  <section class="cards needs-data" aria-label="Resumo da última semana">
+    <article class="card" data-s="brent">
+      <h3>Petróleo Brent</h3>
+      <div class="val" id="c-brent">111,20 €</div>
+      <div class="unit">por barril (159 litros)</div>
+      <svg class="spark" id="s-brent" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="sub" id="c-brent-usd">125,00 USD</div>
+    </article>
+    <article class="card" data-s="gasolina">
+      <h3>Gasolina 95</h3>
+      <div class="val" id="c-gas">2,08 €</div>
+      <div class="unit">por litro, com impostos</div>
+      <svg class="spark" id="s-gas" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="sub">Média nacional, últimas 26 semanas</div>
+    </article>
+    <article class="card" data-s="gasoleo">
+      <h3>Gasóleo</h3>
+      <div class="val" id="c-dsl">2,16 €</div>
+      <div class="unit">por litro, com impostos</div>
+      <svg class="spark" id="s-dsl" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="sub">Média nacional, últimas 26 semanas</div>
+    </article>
+    <article class="card" data-s="var">
+      <h3>Face à semana anterior</h3>
+      <ul class="var-list" id="var-list"><li>…</li><li>…</li><li>…</li></ul>
+      <p class="note">As setas mostram só a direção do preço. Subir ou descer não é marcado como bom ou mau.</p>
+    </article>
+  </section>
+
+  <section class="block needs-data" id="evolucao" aria-labelledby="h-evo">
+    <div class="block-head">
+      <h2 id="h-evo">O petróleo e a bomba ao longo do tempo</h2>
+      <p class="dek">O Brent lê-se na escala da esquerda, em euros por barril. A gasolina e o gasóleo leem-se na escala da direita, em euros por litro.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Período" id="per-main"></div>
+        <div class="legend" role="group" aria-label="Mostrar ou esconder séries" id="leg-main"></div>
+      </div>
+      <div class="axis-cap" aria-hidden="true">
+        <span><i class="dot" style="background:var(--brent)"></i>Brent, €/barril</span>
+        <span>Combustíveis, €/litro<i class="dot" style="background:var(--gasolina)"></i><i class="dot" style="background:var(--gasoleo);margin-left:-3px"></i></span>
+      </div>
+      <div class="chart-box"><canvas id="chart-main" role="img" aria-label="Gráfico de linhas com o preço semanal do Brent e dos combustíveis em Portugal"></canvas></div>
+      <div class="range-label"><span>Intervalo: <b id="rng-text">…</b></span><span>Arraste as pegas para ajustar</span></div>
+      <div class="range" id="range-main">
+        <svg class="ov" id="ov" viewBox="0 0 1000 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="win" id="win"></div>
+        <input type="range" id="r-from" aria-label="Início do intervalo">
+        <input type="range" id="r-to" aria-label="Fim do intervalo">
+      </div>
+    </div>
+  </section>
+
+  <section class="block needs-data" id="indice" aria-labelledby="h-idx">
+    <div class="block-head">
+      <h2 id="h-idx">Quem subiu mais?</h2>
+      <p class="dek">As três séries partem de 100 na data que escolher. Um valor de 150 quer dizer que o preço subiu 50% desde essa semana.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Data de referência" id="base-btns"></div>
+      </div>
+      <label class="range-label" for="r-base"><span>Base 100 na semana de <b id="base-text">…</b></span></label>
+      <input type="range" class="single-range" id="r-base">
+      <div class="stats" id="idx-stats"></div>
+      <div class="chart-box short"><canvas id="chart-idx" role="img" aria-label="Gráfico com as três séries indexadas a 100 na data de referência"></canvas></div>
+    </div>
+  </section>
+
+  <section class="block needs-data" id="composicao" aria-labelledby="h-comp">
+    <div class="block-head">
+      <h2 id="h-comp">Quanto do preço é imposto</h2>
+      <p class="dek">Cada litro divide-se em três partes: o preço do produto antes de impostos (que inclui refinação, transporte e margens), o imposto sobre produtos petrolíferos (ISP) e o IVA.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Combustível" id="fuel-btns">
+          <button data-fuel="gasolina" aria-pressed="true">Gasolina 95</button>
+          <button data-fuel="gasoleo" aria-pressed="false">Gasóleo</button>
+        </div>
+        <div class="seg" role="group" aria-label="Período" id="per-comp"></div>
+      </div>
+      <div class="mix" id="mix"></div>
+      <div class="chart-box short"><canvas id="chart-comp" role="img" aria-label="Gráfico de áreas empilhadas com a composição do preço por litro"></canvas></div>
+    </div>
+  </section>
+
+  <section class="block reading" aria-label="Notas">
+    <div>
+      <h2>Como ler isto</h2>
+      <p>As escalas do Brent e dos combustíveis são diferentes, por isso quando as linhas se cruzam isso não quer dizer que os preços sejam iguais.</p>
+      <p>Um barril tem 159 litros de petróleo bruto, que ainda tem de ser refinado, transportado e vendido.</p>
+      <p>O preço na bomba costuma reagir ao petróleo com uma a três semanas de atraso.</p>
+      <p>Perto de metade do que paga é imposto. O ISP é um valor fixo por litro e não muda com o Brent; o IVA é uma percentagem e acompanha o preço.</p>
+    </div>
+    <div>
+      <h2>Fontes e metodologia</h2>
+      <ul>
+        <li>Preços de venda ao público, com e sem impostos: <a href="https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en" rel="noopener">Weekly Oil Bulletin</a> da Comissão Europeia, média nacional para Portugal.</li>
+        <li>Preço do Brent em dólares: série diária da EIA, via <a href="https://fred.stlouisfed.org/series/DCOILBRENTEU" rel="noopener">FRED</a>.</li>
+        <li>Conversão para euros: taxa de câmbio de referência do <a href="https://data.ecb.europa.eu/" rel="noopener">Banco Central Europeu</a>.</li>
+      </ul>
+      <p class="small">O Brent é a média dos dias úteis de cada semana. Os preços na bomba são os registados à segunda-feira. O IVA por litro é calculado com a taxa em vigor em cada data; o ISP é a diferença entre o preço com impostos, o preço sem impostos e o IVA, e inclui a taxa de carbono. Os dados são atualizados automaticamente todos os dias.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Petróleo vs Bomba. Projeto independente, sem publicidade e sem registo.</span>
+    <span>Dados: Comissão Europeia, EIA/FRED e BCE.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script id="gen">
+/* ---------- Dados de exemplo (substituídos pelo JSON real em produção) ---------- */
+const DAY = 864e5, WEEK = 7 * DAY;
+function ym(s){ const [y,m] = s.split('-').map(Number); return Date.UTC(y, m - 1, 15); }
+const A = l => l.map(([s,v]) => [ym(s), v]);
+function interp(a, t){
+  if (t <= a[0][0]) return a[0][1];
+  for (let i = 1; i < a.length; i++) if (t <= a[i][0]) { const [t0,v0] = a[i-1], [t1,v1] = a[i]; return v0 + (v1 - v0) * (t - t0) / (t1 - t0); }
+  return a[a.length-1][1];
+}
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r){ return Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r()); }
+const BRENT = A([['2005-01',44],['2005-08',64],['2005-12',57],['2006-07',74],['2007-01',54],['2007-07',75],['2007-11',92],['2008-03',103],['2008-07',133],['2008-09',98],['2008-12',40],['2009-03',46],['2009-06',69],['2009-12',75],['2010-05',75],['2010-12',91],['2011-04',123],['2011-09',110],['2012-03',125],['2012-06',95],['2012-09',113],['2013-04',103],['2013-08',111],['2014-06',112],['2014-09',97],['2014-12',62],['2015-01',48],['2015-05',64],['2015-08',47],['2015-12',38],['2016-01',31],['2016-06',48],['2016-12',54],['2017-06',46],['2017-12',64],['2018-05',77],['2018-10',81],['2018-12',57],['2019-04',71],['2019-08',59],['2019-12',67],['2020-01',64],['2020-03',32],['2020-04',19],['2020-06',40],['2020-12',50],['2021-03',65],['2021-07',75],['2021-10',84],['2021-12',74],['2022-02',97],['2022-03',117],['2022-06',122],['2022-09',90],['2022-12',81],['2023-03',79],['2023-06',75],['2023-09',94],['2023-12',77],['2024-04',89],['2024-09',73],['2024-12',74],['2025-01',79],['2025-04',66],['2025-06',70],['2025-09',67],['2025-12',63],['2026-02',71],['2026-04',89],['2026-06',108],['2026-08',121],['2026-09',128],['2026-10',125]]);
+const FX = A([['2005-01',1.31],['2005-12',1.19],['2006-12',1.32],['2007-12',1.46],['2008-07',1.58],['2008-11',1.27],['2009-12',1.46],['2010-06',1.22],['2011-04',1.44],['2012-07',1.23],['2013-12',1.37],['2014-05',1.39],['2015-03',1.08],['2017-01',1.06],['2018-02',1.24],['2019-09',1.10],['2020-03',1.10],['2021-01',1.22],['2022-09',0.99],['2023-07',1.10],['2024-04',1.07],['2024-09',1.11],['2025-01',1.04],['2025-07',1.17],['2026-01',1.16],['2026-10',1.126]]);
+const ISPG = A([['2005-01',.523],['2008-01',.583],['2011-01',.583],['2015-01',.64],['2016-03',.70],['2018-01',.66],['2021-12',.66],['2022-05',.52],['2023-06',.55],['2024-06',.59],['2025-06',.57],['2026-04',.55],['2026-10',.548]]);
+const ISPD = A([['2005-01',.33],['2008-01',.36],['2011-01',.37],['2015-01',.42],['2016-03',.48],['2018-01',.47],['2021-12',.48],['2022-05',.38],['2023-06',.42],['2024-06',.44],['2025-06',.43],['2026-10',.40]]);
+const MG = A([['2005-01',.22],['2010-01',.28],['2015-01',.36],['2020-01',.38],['2022-06',.52],['2023-06',.40],['2025-06',.40],['2026-10',.44]]);
+const MD = A([['2005-01',.20],['2008-07',.38],['2010-01',.30],['2015-01',.36],['2020-01',.34],['2022-04',.80],['2023-06',.45],['2025-06',.40],['2026-04',.45],['2026-10',.66]]);
+function ivaRate(t){ if (t < Date.UTC(2005,6,1)) return .19; if (t < Date.UTC(2008,6,1)) return .21; if (t < Date.UTC(2010,6,1)) return .20; if (t < Date.UTC(2011,0,1)) return .21; return .23; }
+function generateData(){
+  const r = rng(20260), start = Date.UTC(2005,0,3), end = Date.UTC(2026,9,12);
+  const T = [], usd = [], eur = []; let e = 0;
+  for (let t = start; t <= end; t += WEEK){ e = .82 * e + .022 * gauss(r); const u = interp(BRENT,t) * Math.exp(e); T.push(t); usd.push(u); eur.push(u / interp(FX,t)); }
+  const n = T.length, K = 10, ramp = i => Math.max(0, (i - (n - K)) / (K - 1));
+  const k = 111.2 / eur[n-1];
+  for (let i = n - K; i < n; i++){ const f = Math.pow(k, ramp(i)); eur[i] *= f; usd[i] *= f; }
+  const gs = [], ds = []; let eg = 0, ed = 0;
+  for (let i = 0; i < n; i++){
+    const lag = eur[Math.max(0,i-2)] * .6 + eur[Math.max(0,i-1)] * .4;
+    eg = .7 * eg + .007 * gauss(r); ed = .7 * ed + .007 * gauss(r);
+    gs.push(lag / 159 + interp(MG,T[i]) + eg); ds.push(lag / 159 + interp(MD,T[i]) + ed);
+  }
+  const fin = (s, isp, i) => (s + isp) * (1 + ivaRate(T[i]));
+  const dg = (2.08 / 1.23 - interp(ISPG,T[n-1])) - gs[n-1], dd = (2.16 / 1.23 - interp(ISPD,T[n-1])) - ds[n-1];
+  for (let i = n - K; i < n; i++){ gs[i] += dg * ramp(i); ds[i] += dd * ramp(i); }
+  const r3 = v => Math.round(v * 1000) / 1000, r2 = v => Math.round(v * 100) / 100;
+  return T.map((t,i) => ({
+    date: new Date(t).toISOString().slice(0,10),
+    brent_usd: r2(usd[i]), brent_eur: r2(eur[i]),
+    gasolina: r3(fin(gs[i], interp(ISPG,t), i)), gasoleo: r3(fin(ds[i], interp(ISPD,t), i)),
+    gasolina_sem_imp: r3(gs[i]), gasoleo_sem_imp: r3(ds[i])
+  }));
+}
+</script>
+<script>
+/* ---------- Formatação ---------- */
+const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const nf0 = new Intl.NumberFormat('pt-PT', {maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('pt-PT', {minimumFractionDigits:1, maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat('pt-PT', {minimumFractionDigits:2, maximumFractionDigits:2});
+const eur2 = v => nf2.format(v) + ' €';
+const fmtDate = t => { const d = new Date(t); return d.getUTCDate() + ' ' + MES[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); };
+const fmtPct = v => (v > 0.05 ? '+' : v < -0.05 ? '−' : '') + nf1.format(Math.abs(v)) + '%';
+const $ = s => document.querySelector(s);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- Estado ---------- */
+let D = null;
+const charts = {};
+const S = { main:{start:0,end:0,period:'5a'}, hidden:[false,false,false], base:0, comp:{fuel:'gasolina',start:0,end:0,period:'tudo'} };
+const PERIODS = [['1a','1 ano',52],['5a','5 anos',261],['10a','10 anos',522],['tudo','Tudo',Infinity]];
+const SERIES = [['brent','Brent'],['gasolina','Gasolina 95'],['gasoleo','Gasóleo']];
+
+function prepare(rows){
+  const t = rows.map(r => Date.parse(r.date + 'T00:00:00Z'));
+  return {
+    n: rows.length, t,
+    brent: rows.map(r => r.brent_eur), usd: rows.map(r => r.brent_usd),
+    gasolina: rows.map(r => r.gasolina), gasoleo: rows.map(r => r.gasoleo),
+    gasolina_s: rows.map(r => r.gasolina_sem_imp), gasoleo_s: rows.map(r => r.gasoleo_sem_imp),
+    updatedAt: Date.UTC(2026,9,13,6,0)
+  };
+}
+function weekIndexFrom(ts){ const i = D.t.findIndex(t => t >= ts); return i < 0 ? D.n - 1 : i; }
+
+/* ---------- Cores do tema ---------- */
+function C(){
+  const s = getComputedStyle(document.documentElement), g = n => s.getPropertyValue(n).trim();
+  return { ink:g('--ink'), muted:g('--muted'), line:g('--line'), soft:g('--line-soft'), surface:g('--surface'),
+           brent:g('--brent'), gasolina:g('--gasolina'), gasoleo:g('--gasoleo'), isp:g('--isp'), iva:g('--iva') };
+}
+function alpha(hex, a){ const h = hex.replace('#',''); const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+
+/* ---------- Leitura de dados ---------- */
+async function getData(opts){
+  // Em produção:
+  // const r = await fetch('/dados/semanal.json', {cache:'no-cache'});
+  // if (!r.ok) throw new Error('HTTP ' + r.status);
+  // return r.json();
+  await wait(opts.delay);
+  if (opts.fail) throw new Error('Falha simulada');
+  return generateData();
+}
+async function load(opts = {delay:250}){
+  setState('loading');
+  destroyCharts();
+  try {
+    if (typeof Chart === 'undefined') throw new Error('Biblioteca de gráficos indisponível');
+    const rows = await getData(opts);
+    if (!Array.isArray(rows) || rows.length < 60) throw new Error('Dados incompletos');
+    D = prepare(rows);
+    if (!S.main.end) initState();
+    setState('ready');
+    renderAll();
+  } catch (e) {
+    console.error(e);
+    setState('error');
+  }
+}
+function setState(st){
+  document.body.dataset.state = st;
+  document.querySelectorAll('[data-pv]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pv === st)));
+}
+function initState(){
+  const last = D.n - 1;
+  S.main.end = last; S.main.start = Math.max(0, last - 261);
+  S.comp.end = last; S.comp.start = 0;
+  S.base = weekIndexFrom(Date.UTC(2021,0,1));
+}
+
+/* ---------- Texto e cartões ---------- */
+function renderText(){
+  const i = D.n - 1, y = Math.max(0, i - 52);
+  $('#updated').innerHTML = `Atualizado a <b>${fmtDate(D.updatedAt)}</b><br>Preços da semana de ${fmtDate(D.t[i])}`;
+  $('#lede').textContent = `Esta semana, um barril de Brent custa em média ${eur2(D.brent[i])} e um litro de gasóleo ${eur2(D.gasoleo[i])}.`;
+  $('#lede-sub').textContent = `Há um ano, o barril custava ${eur2(D.brent[y])} e o gasóleo ${eur2(D.gasoleo[y])}. A gasolina 95 está hoje a ${eur2(D.gasolina[i])} por litro.`;
+  $('#c-brent').textContent = eur2(D.brent[i]);
+  $('#c-brent-usd').textContent = `${nf2.format(D.usd[i])} USD. Média da semana.`;
+  $('#c-gas').textContent = eur2(D.gasolina[i]);
+  $('#c-dsl').textContent = eur2(D.gasoleo[i]);
+  spark('#s-brent', D.brent, 'var(--brent)');
+  spark('#s-gas', D.gasolina, 'var(--gasolina)');
+  spark('#s-dsl', D.gasoleo, 'var(--gasoleo)');
+  const up = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1 9.5 9h-9z" fill="currentColor"/></svg>';
+  const dn = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 9 .5 1h9z" fill="currentColor"/></svg>';
+  const eq = '<svg viewBox="0 0 10 10" aria-hidden="true"><rect x="1" y="4" width="8" height="2" fill="currentColor"/></svg>';
+  $('#var-list').innerHTML = SERIES.map(([k,label]) => {
+    const p = (D[k][i] / D[k][i-1] - 1) * 100, abs = Math.abs(p) < .05;
+    const word = abs ? 'sem alteração' : p > 0 ? 'sobe' : 'desce';
+    return `<li><span class="name"><i class="dot" style="background:var(--${k})"></i>${label}</span><span class="chg">${abs ? eq : p > 0 ? up : dn}${fmtPct(p)}<span class="sr"> (${word})</span></span></li>`;
+  }).join('');
+}
+function spark(sel, arr, color){
+  const a = arr.slice(-26), mn = Math.min(...a), mx = Math.max(...a), sp = (mx - mn) || 1;
+  const d = a.map((v,i) => `${i ? 'L' : 'M'}${(i / (a.length - 1) * 100).toFixed(2)} ${(27 - (v - mn) / sp * 24).toFixed(2)}`).join('');
+  $(sel).innerHTML = `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.75" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+}
+
+/* ---------- Comum aos gráficos ---------- */
+function buildTimeTicks(scale){
+  const min = scale.min, max = scale.max, span = (max - min) / DAY, narrow = scale.chart.width < 560, out = [];
+  if (span <= 430){
+    const step = narrow ? 3 : 2, d = new Date(min); let y = d.getUTCFullYear(), m = d.getUTCMonth() + 1;
+    for (let g = 0; g < 30; g++){ if (m > 11){ m -= 12; y++; } const v = Date.UTC(y,m,1); if (v > max) break; if (m % step === 0) out.push({value:v}); m++; }
+  } else {
+    const yrs = span / 365.25, step = yrs <= 6 ? 1 : narrow ? (yrs > 12 ? 5 : 2) : (yrs > 12 ? 2 : 1);
+    for (let y = new Date(min).getUTCFullYear() + 1; ; y++){ const v = Date.UTC(y,0,1); if (v > max) break; if (y % step === 0) out.push({value:v}); }
+  }
+  scale.ticks = out;
+}
+function xScale(c){
+  return { type:'linear', bounds:'data', grid:{display:false}, border:{color:c.line},
+    ticks:{ color:c.muted, maxRotation:0, autoSkip:false, font:{size:12},
+      callback(v){ const d = new Date(v), span = (this.max - this.min) / DAY; return span <= 430 ? MES[d.getUTCMonth()] + (d.getUTCMonth() === 0 ? ' ' + d.getUTCFullYear() : '') : String(d.getUTCFullYear()); } },
+    afterBuildTicks: buildTimeTicks };
+}
+function baseOpts(c){
+  return {
+    responsive:true, maintainAspectRatio:false, normalized:true,
+    animation: reduceMotion ? false : {duration:450},
+    interaction:{mode:'index', intersect:false},
+    layout:{padding:{top:4}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{ backgroundColor:c.surface, titleColor:c.ink, bodyColor:c.ink, footerColor:c.muted, borderColor:c.line, borderWidth:1,
+        padding:10, boxPadding:5, usePointStyle:true, titleFont:{weight:'600'}, bodyFont:{size:13}, footerFont:{size:12, weight:'400'},
+        callbacks:{ title: it => 'Semana de ' + fmtDate(it[0].parsed.x),
+          labelColor: ctx => ({borderColor:ctx.dataset.borderColor, backgroundColor:ctx.dataset.borderColor}),
+          labelPointStyle: () => ({pointStyle:'circle', rotation:0}) } }
+    }
+  };
+}
+const crosshair = { id:'crosshair', afterDatasetsDraw(ch){
+  const a = ch.tooltip && ch.tooltip.getActiveElements(); if (!a || !a.length) return;
+  const x = a[0].element.x, {top,bottom} = ch.chartArea, ctx = ch.ctx;
+  ctx.save(); ctx.strokeStyle = ch.options.plugins.crosshairColor || '#888'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke(); ctx.restore(); } };
+function slice(arr, s, e, f = v => v){ const o = new Array(e - s + 1); for (let i = s; i <= e; i++) o[i-s] = {x:D.t[i], y:f(arr[i], i)}; return o; }
+function line(label, data, color, axis, w){
+  return { label, data, borderColor:color, backgroundColor:color, yAxisID:axis, borderWidth:w, pointRadius:0, pointHoverRadius:4,
+           pointHoverBorderWidth:2, pointHoverBorderColor:getComputedStyle(document.documentElement).getPropertyValue('--surface').trim(), tension:0, fill:false };
+}
+function periodButtons(sel, current, onPick){
+  const el = $(sel);
+  el.innerHTML = PERIODS.map(([k,l]) => `<button data-k="${k}" aria-pressed="${k === current}">${l}</button>`).join('');
+  el.onclick = e => { const b = e.target.closest('button'); if (!b) return; onPick(b.dataset.k); el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); };
+}
+function periodRange(k){ const w = PERIODS.find(p => p[0] === k)[2], end = D.n - 1; return [Math.max(0, end - w), end]; }
+
+/* ---------- Gráfico principal ---------- */
+function buildMain(){
+  const c = C(), {start,end} = S.main;
+  charts.main = new Chart($('#chart-main'), {
+    type:'line',
+    data:{ datasets:[
+      line('Brent', slice(D.brent,start,end), c.brent, 'yB', 2.25),
+      line('Gasolina 95', slice(D.gasolina,start,end), c.gasolina, 'yF', 1.75),
+      line('Gasóleo', slice(D.gasoleo,start,end), c.gasoleo, 'yF', 1.75) ].map((d,i) => (d.hidden = S.hidden[i], d)) },
+    options:{ ...baseOpts(c),
+      scales:{ x:xScale(c),
+        yB:{ position:'left', display:'auto', grid:{color:c.soft}, border:{display:false}, ticks:{color:c.muted, font:{size:12}, maxTicksLimit:6, callback:v => nf0.format(v) + ' €'} },
+        yF:{ position:'right', display:'auto', grid:{display:false}, border:{display:false}, ticks:{color:c.muted, font:{size:12}, maxTicksLimit:6, callback:v => nf2.format(v) + ' €'} } },
+      plugins:{ ...baseOpts(c).plugins, crosshairColor:c.muted,
+        tooltip:{ ...baseOpts(c).plugins.tooltip, callbacks:{ ...baseOpts(c).plugins.tooltip.callbacks,
+          label: ctx => ctx.dataset.yAxisID === 'yB' ? `Brent: ${eur2(ctx.parsed.y)} por barril` : `${ctx.dataset.label}: ${eur2(ctx.parsed.y)} por litro` } } } },
+    plugins:[crosshair]
+  });
+  // legenda clicável
+  const leg = $('#leg-main');
+  leg.innerHTML = SERIES.map(([k,l],i) => `<button data-i="${i}" aria-pressed="${!S.hidden[i]}"><span class="sw" style="background:var(--${k})"></span>${l}</button>`).join('');
+  leg.onclick = e => { const b = e.target.closest('button'); if (!b) return; const i = +b.dataset.i;
+    S.hidden[i] = !S.hidden[i]; charts.main.setDatasetVisibility(i, !S.hidden[i]); charts.main.update(); b.setAttribute('aria-pressed', String(!S.hidden[i])); };
+  periodButtons('#per-main', S.main.period, k => { S.main.period = k; [S.main.start, S.main.end] = periodRange(k); syncRange(); updateMain(); });
+  buildRange();
+}
+function updateMain(){
+  const {start,end} = S.main, ch = charts.main; if (!ch) return;
+  ch.data.datasets[0].data = slice(D.brent,start,end);
+  ch.data.datasets[1].data = slice(D.gasolina,start,end);
+  ch.data.datasets[2].data = slice(D.gasoleo,start,end);
+  ch.update('none');
+  $('#rng-text').textContent = `${fmtDate(D.t[start])} a ${fmtDate(D.t[end])}`;
+}
+function buildRange(){
+  const from = $('#r-from'), to = $('#r-to'), max = D.n - 1;
+  [from,to].forEach(r => { r.min = 0; r.max = max; r.step = 1; });
+  const mn = Math.min(...D.brent), mx = Math.max(...D.brent);
+  const d = D.brent.map((v,i) => `${i ? 'L' : 'M'}${(i / max * 1000).toFixed(1)} ${(29 - (v - mn) / (mx - mn) * 27).toFixed(1)}`).join('');
+  $('#ov').innerHTML = `<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.25" vector-effect="non-scaling-stroke"/>`;
+  const GAP = 8;
+  const onInput = e => {
+    let a = +from.value, b = +to.value;
+    if (b - a < GAP){ if (e.target === from) a = b - GAP; else b = a + GAP; }
+    S.main.start = Math.max(0, a); S.main.end = Math.min(max, b); S.main.period = null;
+    $('#per-main').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed','false'));
+    syncRange(); updateMain();
+  };
+  from.oninput = to.oninput = onInput;
+  syncRange(); updateMain();
+}
+function syncRange(){
+  const max = D.n - 1, from = $('#r-from'), to = $('#r-to');
+  from.value = S.main.start; to.value = S.main.end;
+  from.setAttribute('aria-valuetext', fmtDate(D.t[S.main.start])); to.setAttribute('aria-valuetext', fmtDate(D.t[S.main.end]));
+  const w = $('#win'); w.style.left = (S.main.start / max * 100) + '%'; w.style.width = ((S.main.end - S.main.start) / max * 100) + '%';
+}
+
+/* ---------- Comparação indexada ---------- */
+const baseline = { id:'baseline', beforeDatasetsDraw(ch){
+  const y = ch.scales.y.getPixelForValue(100), {left,right} = ch.chartArea, ctx = ch.ctx;
+  ctx.save(); ctx.strokeStyle = ch.options.plugins.baselineColor; ctx.lineWidth = 1.25; ctx.beginPath(); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke();
+  ctx.fillStyle = ch.options.plugins.baselineColor; ctx.font = '12px ' + Chart.defaults.font.family; ctx.fillText('100', left + 4, y - 5); ctx.restore(); } };
+function idxData(k){ const b = D[k][S.base]; return slice(D[k], S.base, D.n - 1, v => v / b * 100); }
+function buildIdx(){
+  const c = C();
+  charts.idx = new Chart($('#chart-idx'), {
+    type:'line',
+    data:{ datasets: SERIES.map(([k,l]) => line(l, idxData(k), c[k], 'y', k === 'brent' ? 2.25 : 1.75)) },
+    options:{ ...baseOpts(c),
+      scales:{ x:xScale(c), y:{ grid:{color:c.soft}, border:{display:false}, ticks:{color:c.muted, font:{size:12}, maxTicksLimit:6, callback:v => nf0.format(v)} } },
+      plugins:{ ...baseOpts(c).plugins, crosshairColor:c.muted, baselineColor:c.muted,
+        tooltip:{ ...baseOpts(c).plugins.tooltip, callbacks:{ ...baseOpts(c).plugins.tooltip.callbacks,
+          label: ctx => `${ctx.dataset.label}: ${nf0.format(ctx.parsed.y)} (${fmtPct(ctx.parsed.y - 100)})` } } } },
+    plugins:[crosshair, baseline]
+  });
+  const r = $('#r-base'); r.min = 0; r.max = D.n - 9; r.step = 1; r.value = S.base;
+  r.oninput = () => { S.base = +r.value; markBase(null); updateIdx(); };
+  const opts = [['Há 1 ano', D.n - 53], ['2021', weekIndexFrom(Date.UTC(2021,0,1))], ['2015', weekIndexFrom(Date.UTC(2015,0,1))], ['2005', 0]];
+  const el = $('#base-btns');
+  el.innerHTML = opts.map(([l,i]) => `<button data-i="${i}" aria-pressed="${i === S.base}">${l}</button>`).join('');
+  el.onclick = e => { const b = e.target.closest('button'); if (!b) return; S.base = +b.dataset.i; r.value = S.base; markBase(b); updateIdx(); };
+  updateIdx(true);
+}
+function markBase(btn){ $('#base-btns').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === btn))); }
+function updateIdx(skipChart){
+  const last = D.n - 1;
+  $('#base-text').textContent = fmtDate(D.t[S.base]);
+  $('#r-base').setAttribute('aria-valuetext', fmtDate(D.t[S.base]));
+  const res = SERIES.map(([k,l]) => [k, l, (D[k][last] / D[k][S.base] - 1) * 100]);
+  $('#idx-stats').innerHTML = res.map(([k,l,p]) => `<span><i class="dot" style="background:var(--${k})"></i>${l} <b>${fmtPct(p)}</b></span>`).join('');
+  if (skipChart || !charts.idx) return;
+  charts.idx.data.datasets.forEach((d,i) => d.data = idxData(SERIES[i][0]));
+  charts.idx.update('none');
+}
+
+/* ---------- Composição do preço ---------- */
+function parts(fuel, i){
+  const tot = D[fuel][i], sem = D[fuel + '_s'][i], r = ivaRate(D.t[i]);
+  const iva = tot * r / (1 + r); return { tot, sem, iva, isp: tot - sem - iva };
+}
+function compData(fuel, key){ const {start,end} = S.comp; return slice(D[fuel], start, end, (v,i) => parts(fuel,i)[key]); }
+function buildComp(){
+  const c = C(), f = S.comp.fuel;
+  const area = (label, key, stroke, fill, order) => ({ label, data:compData(f,key), borderColor:stroke, backgroundColor:fill, borderWidth:1, pointRadius:0, pointHoverRadius:3, fill: order ? '-1' : 'origin', tension:0, key });
+  charts.comp = new Chart($('#chart-comp'), {
+    type:'line',
+    data:{ datasets:[ area('Sem impostos','sem', c[f], alpha(c[f], .55), 0), area('ISP','isp', c.isp, alpha(c.isp,.85), 1), area('IVA','iva', c.iva, alpha(c.iva,.95), 2) ] },
+    options:{ ...baseOpts(c),
+      scales:{ x:xScale(c), y:{ stacked:true, beginAtZero:true, grid:{color:c.soft}, border:{display:false}, ticks:{color:c.muted, font:{size:12}, maxTicksLimit:6, callback:v => nf2.format(v) + ' €'} } },
+      plugins:{ ...baseOpts(c).plugins, crosshairColor:c.muted,
+        tooltip:{ ...baseOpts(c).plugins.tooltip, itemSort:(a,b) => b.datasetIndex - a.datasetIndex, callbacks:{ ...baseOpts(c).plugins.tooltip.callbacks,
+          label: ctx => `${ctx.dataset.label}: ${eur2(ctx.parsed.y)}`,
+          footer: it => { const p = parts(S.comp.fuel, D.t.indexOf(it[0].parsed.x)); return `Total ${eur2(p.tot)} por litro, ${nf0.format((p.isp + p.iva) / p.tot * 100)}% em impostos`; } } } } },
+    plugins:[crosshair]
+  });
+  periodButtons('#per-comp', S.comp.period, k => { S.comp.period = k; [S.comp.start, S.comp.end] = periodRange(k); updateComp(); });
+  $('#fuel-btns').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.comp.fuel = b.dataset.fuel;
+    $('#fuel-btns').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); charts.comp.destroy(); buildComp(); };
+  renderMix();
+}
+function updateComp(){
+  const ch = charts.comp; if (!ch) return;
+  ch.data.datasets.forEach(d => d.data = compData(S.comp.fuel, d.key)); ch.update('none');
+}
+function renderMix(){
+  const f = S.comp.fuel, p = parts(f, D.n - 1), name = f === 'gasolina' ? 'da gasolina 95' : 'do gasóleo';
+  const pct = v => v / p.tot * 100;
+  $('#mix').innerHTML = `
+    <p class="mix-title">Esta semana, <b>${nf0.format(pct(p.isp + p.iva))}%</b> do preço ${name} (${eur2(p.tot)} por litro) são impostos.</p>
+    <div class="mix-bar" role="img" aria-label="Sem impostos ${eur2(p.sem)}, ISP ${eur2(p.isp)}, IVA ${eur2(p.iva)}">
+      <span style="width:${pct(p.sem)}%;background:${alpha(C()[f], .55)}"></span><span style="width:${pct(p.isp)}%;background:var(--isp)"></span><span style="width:${pct(p.iva)}%;background:var(--iva)"></span>
+    </div>
+    <div class="mix-key">
+      <span><i class="sq" style="background:${alpha(C()[f], .55)}"></i>Sem impostos <b>${eur2(p.sem)}</b></span>
+      <span><i class="sq" style="background:var(--isp)"></i>ISP <b>${eur2(p.isp)}</b></span>
+      <span><i class="sq" style="background:var(--iva)"></i>IVA (23%) <b>${eur2(p.iva)}</b></span>
+    </div>`;
+}
+
+/* ---------- Ciclo ---------- */
+function destroyCharts(){ Object.keys(charts).forEach(k => { charts[k].destroy(); delete charts[k]; }); }
+function renderAll(){
+  destroyCharts();
+  Chart.defaults.font.family = '"IBM Plex Sans", system-ui, sans-serif';
+  renderText(); buildMain(); buildIdx(); buildComp();
+}
+
+/* Pré-visualização: tema e estados */
+document.querySelectorAll('[data-theme-set]').forEach(b => b.addEventListener('click', () => {
+  const v = b.dataset.themeSet;
+  if (v === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = v;
+  document.querySelectorAll('[data-theme-set]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  if (document.body.dataset.state === 'ready') renderAll();
+}));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (document.body.dataset.state === 'ready') renderAll(); });
+document.querySelectorAll('[data-pv]').forEach(b => b.addEventListener('click', () => {
+  const v = b.dataset.pv;
+  if (v === 'ready') load({delay:250});
+  else if (v === 'loading') { load({delay:2500}); }
+  else { destroyCharts(); setState('error'); }
+}));
+$('#retry').addEventListener('click', () => load({delay:600}));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (document.body.dataset.state === 'ready') Object.values(charts).forEach(c => c.update('none')); });
+
+load({delay:250});
+</script>
+</body>
+</html>

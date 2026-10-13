@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Combustíveis em Portugal</title>
+<meta name="description" content="Evolução semanal do preço do petróleo Brent comparada com o preço da gasolina 95 e do gasóleo em Portugal, com e sem impostos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-state="loading">
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="mast-top">
+      <h1 class="wordmark">Combustíveis em Portugal<small>O preço do barril de petróleo e o que paga por litro em Portugal, semana a semana desde 2005.</small></h1>
+      <p class="updated" id="updated">Atualizado a <b>…</b></p>
+    </div>
+    <p class="lede" id="lede">…</p>
+    <p class="lede-sub" id="lede-sub">…</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="status error" id="erro" role="alert">
+    <h2>Não foi possível carregar os dados de preços</h2>
+    <p>O ficheiro com o histórico semanal não respondeu. Verifique a ligação à internet e tente novamente. Se o problema continuar, os dados voltam a ficar disponíveis na próxima atualização diária.</p>
+    <button class="btn" id="retry">Tentar novamente</button>
+  </div>
+
+  <section class="cards needs-data" aria-label="Resumo da última semana">
+    <article class="card" data-s="brent">
+      <h3>Petróleo Brent</h3>
+      <div class="val" id="c-brent">…</div>
+      <div class="unit">por barril (159 litros)</div>
+      <svg class="spark" id="s-brent" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="sub">Média da semana</div>
+    </article>
+    <article class="card" data-s="gasolina">
+      <h3>Gasolina 95</h3>
+      <div class="val" id="c-gas">…</div>
+      <div class="unit">por litro, com impostos</div>
+      <svg class="spark" id="s-gas" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="sub">Média nacional, últimas 26 semanas</div>
+    </article>
+    <article class="card" data-s="gasoleo">
+      <h3>Gasóleo</h3>
+      <div class="val" id="c-dsl">…</div>
+      <div class="unit">por litro, com impostos</div>
+      <svg class="spark" id="s-dsl" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="sub">Média nacional, últimas 26 semanas</div>
+    </article>
+    <article class="card" data-s="var">
+      <h3>Face à semana anterior</h3>
+      <ul class="var-list" id="var-list"><li>…</li><li>…</li><li>…</li></ul>
+      <p class="note">As setas mostram só a direção do preço. Subir ou descer não é marcado como bom ou mau.</p>
+    </article>
+  </section>
+
+  <section class="block needs-data" id="evolucao" aria-labelledby="h-evo">
+    <div class="block-head">
+      <h2 id="h-evo">O petróleo e a bomba ao longo do tempo</h2>
+      <p class="dek">O Brent lê-se na escala da esquerda, em dólares por barril. A gasolina e o gasóleo leem-se na escala da direita, em euros por litro.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Período" id="per-main"></div>
+        <div class="legend" role="group" aria-label="Mostrar ou esconder séries" id="leg-main"></div>
+      </div>
+      <div class="axis-cap" aria-hidden="true">
+        <span><i class="dot" style="background:var(--brent)"></i>Brent, USD/barril</span>
+        <span>Combustíveis, €/litro<i class="dot" style="background:var(--gasolina)"></i><i class="dot" style="background:var(--gasoleo);margin-left:-3px"></i></span>
+      </div>
+      <div class="chart-box"><canvas id="chart-main" role="img" aria-label="Gráfico de linhas com o preço semanal do Brent e dos combustíveis em Portugal"></canvas></div>
+      <div class="range-label"><span>Intervalo: <b id="rng-text">…</b></span><span>Arraste as pegas para ajustar</span></div>
+      <div class="range" id="range-main">
+        <svg class="ov" id="ov" viewBox="0 0 1000 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="win" id="win"></div>
+        <input type="range" id="r-from" aria-label="Início do intervalo">
+        <input type="range" id="r-to" aria-label="Fim do intervalo">
+      </div>
+    </div>
+  </section>
+
+  <section class="block needs-data" id="indice" aria-labelledby="h-idx">
+    <div class="block-head">
+      <h2 id="h-idx">Quem subiu mais?</h2>
+      <p class="dek">As três séries partem de 100 na data que escolher. Um valor de 150 quer dizer que o preço subiu 50% desde essa semana.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Data de referência" id="base-btns"></div>
+      </div>
+      <label class="range-label" for="r-base"><span>Base 100 na semana de <b id="base-text">…</b></span></label>
+      <input type="range" class="single-range" id="r-base">
+      <div class="stats" id="idx-stats"></div>
+      <div class="chart-box short"><canvas id="chart-idx" role="img" aria-label="Gráfico com as três séries indexadas a 100 na data de referência"></canvas></div>
+    </div>
+  </section>
+
+  <section class="block needs-data" id="composicao" aria-labelledby="h-comp">
+    <div class="block-head">
+      <h2 id="h-comp">Quanto do preço é imposto</h2>
+      <p class="dek">Cada litro divide-se em três partes: o preço do produto antes de impostos (que inclui refinação, transporte e margens), o imposto sobre produtos petrolíferos (ISP) e o IVA.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Combustível" id="fuel-btns">
+          <button data-fuel="gasolina" aria-pressed="true">Gasolina 95</button>
+          <button data-fuel="gasoleo" aria-pressed="false">Gasóleo</button>
+        </div>
+        <div class="seg" role="group" aria-label="Período" id="per-comp"></div>
+      </div>
+      <div class="mix" id="mix"></div>
+      <div class="chart-box short"><canvas id="chart-comp" role="img" aria-label="Gráfico de áreas empilhadas com a composição do preço por litro"></canvas></div>
+    </div>
+  </section>
+
+  <section class="block reading" aria-label="Notas">
+    <div>
+      <h2>Como ler isto</h2>
+      <p>As escalas do Brent e dos combustíveis são diferentes, por isso quando as linhas se cruzam isso não quer dizer que os preços sejam iguais.</p>
+      <p>Um barril tem 159 litros de petróleo bruto, que ainda tem de ser refinado, transportado e vendido.</p>
+      <p>O preço na bomba costuma reagir ao petróleo com uma a três semanas de atraso.</p>
+      <p>Perto de metade do que paga é imposto. O ISP é um valor fixo por litro e não muda com o Brent; o IVA é uma percentagem e acompanha o preço.</p>
+    </div>
+    <div>
+      <h2>Fontes e metodologia</h2>
+      <ul>
+        <li>Preços de venda ao público, com e sem impostos: <a href="https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en" rel="noopener">Weekly Oil Bulletin</a> da Comissão Europeia, média nacional para Portugal.</li>
+        <li>Preço do Brent em dólares: série diária da EIA, via <a href="https://fred.stlouisfed.org/series/DCOILBRENTEU" rel="noopener">FRED</a>.</li>
+      </ul>
+      <p class="small">O Brent é a média dos dias úteis de cada semana, em dólares por barril, sem conversão para euros. Os preços na bomba são os registados à segunda-feira. O IVA por litro é calculado com a taxa em vigor em cada data; o ISP é a diferença entre o preço com impostos, o preço sem impostos e o IVA, e inclui a taxa de carbono. Os dados são atualizados automaticamente todos os dias.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Combustíveis em Portugal. Projeto independente, sem publicidade e sem registo.</span>
+    <span>Dados: Comissão Europeia e EIA/FRED.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
